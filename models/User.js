@@ -14,5 +14,5 @@ const dataSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId
     }
 })
-
-module.exports = mongoose.model('User', dataSchema)
+export default mongoose.model('User', dataSchema)
+//module.exports = mongoose.model('User', dataSchema)

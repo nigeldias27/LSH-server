@@ -13,4 +13,5 @@ const dataSchema = new mongoose.Schema({
     gotorole: String
 })
 
-module.exports = mongoose.model('Role', dataSchema)
+export default mongoose.model('Role', dataSchema)
+//module.exports = mongoose.model('Role', dataSchema)

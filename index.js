@@ -1,8 +1,8 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const routes = require("./routes/routes");
-const cors = require('cors');
-require('dotenv').config({ path: '/Users/nigeldias27/ReactProjects/test_api/pass.env' });
+import express from 'express';
+import mongoose from 'mongoose';
+import {readdirSync} from 'fs';
+import cors from 'cors';
+import 'dotenv/config';
 const app = express();
 
 app.use(express.json());
@@ -11,7 +11,7 @@ app.listen(4000, () => {
     console.log(`Server Started at ${4000}`);
     
 })
-app.use('/api', routes)
+readdirSync("./routes").map((r) => app.use("/api", require(`./routes/${r}`)));
 
 const user = process.env.DATABASE_URL;
 mongoose.connect(user)
