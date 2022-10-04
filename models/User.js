@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose"
 
 const dataSchema = new mongoose.Schema({
     email: {
@@ -13,6 +13,6 @@ const dataSchema = new mongoose.Schema({
         ref:'Role',
         type: mongoose.Schema.Types.ObjectId
     }
-})
+},{ timestamps: true })
 export default mongoose.model('User', dataSchema)
 //module.exports = mongoose.model('User', dataSchema)

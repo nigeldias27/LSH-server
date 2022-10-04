@@ -1,18 +1,32 @@
-import express from 'express';
-import {User,Role} from '../models/index.js';
-import bcrypt from 'bcrypt';
-import {getrole,newrole,login,newuser,form_inputs, sendemail} from '../controllers/index.js';
-const saltRounds = 10;
-const router = express.Router()
-router.post('/newrole', newrole);
+import express from "express";
+import { User, Role } from "../models/index.js";
+import bcrypt from "bcrypt";
+import {
+  getrole,
+  newrole,
+  login,
+  newuser,
+  form_inputs,
+  sendemail,
+  newques,
+  newform,
+} from "../controllers/index.js";
+import { authenticatetoken } from "../middlewares/index.js";
 
-router.post('/newuser', newuser)
-router.get('/getroles', getrole)
+const router = express.Router();
+router.post("/newrole", newrole);
 
-router.get('/getinputs/:id',form_inputs);
+router.post("/newuser", newuser);
+router.get("/getroles", getrole);
 
-router.post('/login',login)
+router.get("/getinputs", authenticatetoken, form_inputs);
 
-router.post('/sendemail',sendemail);
+router.post("/login", login);
+
+router.post("/sendemail", sendemail);
+
+router.post("/newquestion", newques);
+
+router.post("/newform", newform);
 
 module.exports = router;

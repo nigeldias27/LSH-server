@@ -1,17 +1,23 @@
-const mongoose = require('mongoose');
-
-const dataSchema = new mongoose.Schema({
-    role_name: {
-        required: true,
-        type: String
+import mongoose from "mongoose";
+const dataSchema = new mongoose.Schema(
+  {
+    roleName: {
+      required: true,
+      type: String,
     },
-    people: [{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'User'
-    }],
-    form_inputs:[],
-    gotorole: String
-})
+    people: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    form: {
+      ref: "Form",
+      type: mongoose.Schema.Types.ObjectId,
+    },
+  },
+  { timestamps: true }
+);
 
-export default mongoose.model('Role', dataSchema)
+export default mongoose.model("Role", dataSchema);
 //module.exports = mongoose.model('Role', dataSchema)
