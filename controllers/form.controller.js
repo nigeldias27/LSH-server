@@ -1,14 +1,16 @@
-import { User, Role, Question, Form } from "../models/index.js";
-import nodemailer from "nodemailer";
-import smtpTransport from "nodemailer-smtp-transport";
+import { User, Role, Question, Form, Submission } from "../models/index.js";
+import { sendemail } from "../helpers/index.js";
+import "dotenv/config";
+import { submitData } from "../helpers/index.js";
+
 const form_inputs = async (req, res) => {
   try {
     const user = await User.findById(req.userid);
     const role = await Role.findById(user.role);
     const form = await Form.findById(role.form);
-    const gotorole = await Role.findById(form.goTorole);
-
-    const qna = [];
+    const gotorole =
+      form.goTorole == "" ? "" : await Role.findById(form.goTorole);
+      const qna = [];
     for (let i = 0; i < form.questions.length; i++) {
       const element = form.questions[i];
       var qnanext = [];
@@ -20,11 +22,28 @@ const form_inputs = async (req, res) => {
       }
       qna.push(qnanext);
     }
-    res.json({
+    
+    if(form.validation==true){
+      console.log(user.previousSubmisson)
+      if(user.previousSubmisson.length==0){
+        await res.send("No form");
+      }
+      else{
+        await res.json({
+          formName: form.formName,
+          questions: qna,
+          goTorole: gotorole==null?"":gotorole.roleName,
+          previousSubmisson:[user.previousSubmisson[0]]
+        });
+      }
+      
+    }else{await res.json({
       formName: form.formName,
       questions: qna,
-      goTorole: gotorole.roleName,
-    });
+      goTorole: gotorole==null?"":gotorole.roleName,
+    });}
+    
+   
   } catch (error) {
     res.status(400).send(error);
   }
@@ -54,10 +73,15 @@ const newques = async (req, res) => {
 /*{
     "formName":"Auth",
     "roleName":"Role B",
+    "gotorole":"Role A",
+    "validation":false,
     "questions":[["Name of Father"],["APGAR Score"]]
 } */
 const newform = async (req, res) => {
-  const role = await Role.findOne({ roleName: req.body.roleName });
+  const role =
+    req.body.gotorole == ""
+      ? ""
+      : await Role.findOne({ roleName: req.body.gotorole });
   var l = [];
   for (let i = 0; i < req.body.questions.length; i++) {
     const element = req.body.questions[i];
@@ -70,56 +94,78 @@ const newform = async (req, res) => {
 
     l.push(innerl);
   }
-  console.log(l);
-  const newform = new Form({
-    formName: req.body.formName,
-    goTorole: role._id,
-    questions: l,
-  });
+  console.log(role);
+  if (role != "") {
+    var newform = new Form({
+      formName: req.body.formName,
+      goTorole: role._id,
+      questions: l,
+      validation: req.body.validation,
+    });
+  } else {
+    var newform = new Form({
+      formName: req.body.formName,
+      questions: l,
+      validation: req.body.validation,
+    });
+  }
   try {
     const datatosave = await newform.save();
+    const roles = await Role.findOne({ roleName: req.body.roleName });
+    await Role.findByIdAndUpdate(roles._id, { form: newform._id });
     res.status(200).send(datatosave);
   } catch (error) {
     res.status(400).send(error);
   }
 };
 
-const sendemail = async (req, res) => {
-  Role.findOne({ roleName: req.body.gotorole }, function (err, role) {
-    var rolearr = role.people;
-    for (let i = 0; i < rolearr.length; i++) {
-      const element = rolearr[i];
-      User.findById(element, (err, users) => {
-        // users.email
-        //TODO: Send email to people which have the same role as the gotorole with the incoming form data
-        var transporter = nodemailer.createTransport(
-          smtpTransport({
-            service: "gmail",
-            host: "smtp.gmail.com",
-            auth: {
-              user: "retailstoreprojects@gmail.com",
-              pass: "dpse@2020",
-            },
-          })
-        );
+const submit = async (req, res) => {
+  var l = submitData(req.body.questions);
 
-        var mailOptions = {
-          from: "retailstoreprojects@gmail.com",
-          to: users.email,
-          subject: "Linguaphile Form",
-          text: req.body.data,
-        };
-
-        transporter.sendMail(mailOptions, function (error, info) {
-          if (error) {
-            res.send(error);
-          } else {
-            res.send("Email sent: " + info.response);
-          }
-        });
-      });
-    }
+if(req.body.previousSubmisson.length==0){  const newsubmission = new Submission({
+    user: req.userid,
+    questions: l,
   });
-};
+  try {
+    const datatosave = await newsubmission.save();
+    console.log(req.body.gotorole);
+    if (req.body.gotorole != "") {
+      const nextrole = await Role.findOne({ roleName: req.body.gotorole });
+      console.log(nextrole.people);
+      const selectedperson =
+        nextrole.people[Math.floor(Math.random() * nextrole.people.length)];
+      const selectedemail = await User.findById(selectedperson);
+      await User.findByIdAndUpdate(selectedperson, {
+        previousSubmisson: [...selectedemail.previousSubmisson,newsubmission._id],
+      });
 
-export { form_inputs, sendemail, newques, newform };
+      await sendemail(l, selectedemail.email);
+      res.status(200).send(datatosave);
+    }
+  } catch (error) {
+    res.status(400).send(error);
+  }}
+  else{
+    const submission = await Submission.findById(req.body.previousSubmisson[0])
+    l = submission.questions.concat(l);
+    await Submission.findByIdAndUpdate(req.body.previousSubmisson[0],{questions:l})
+    const user = await User.findById(req.userid)
+    var x = user.previousSubmisson
+    x.shift()
+    await User.findByIdAndUpdate(req.userid,{previousSubmisson:x})
+    if (req.body.gotorole != "") {
+      const nextrole = await Role.findOne({ roleName: req.body.gotorole });
+      console.log(nextrole.people);
+      const selectedperson =
+        nextrole.people[Math.floor(Math.random() * nextrole.people.length)];
+      const selectedemail = await User.findById(selectedperson);
+      await User.findByIdAndUpdate(selectedperson, {
+        previousSubmisson: [...selectedemail.previousSubmisson,newsubmission._id],
+      });
+
+      await sendemail(l, selectedemail.email);
+      res.status(200).send(l);
+    }
+  }
+};
+export { form_inputs, sendemail, newques, newform, submit };

@@ -11,9 +11,6 @@ const dataSchema = new mongoose.Schema(
       required: true,
       type: String,
     },
-    val: {
-      type: String,
-    },
     subheadings: [],
   },
   { timestamps: true }

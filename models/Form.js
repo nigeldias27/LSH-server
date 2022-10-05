@@ -17,6 +17,7 @@ const dataSchema = new mongoose.Schema(
       ref: "Role",
       type: mongoose.Schema.Types.ObjectId,
     },
+    validation: { type: Boolean },
   },
   { timestamps: true }
 );
