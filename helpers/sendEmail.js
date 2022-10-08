@@ -17,6 +17,7 @@ const sendemail = async (data, to) => {
       }
     }
   }
+  mydata = mydata +`\n Link to form: ${process.env.EMAIL_LINK}`
 
   var transporter = nodemailer.createTransport({
     host: "smtp-mail.outlook.com", // hostname
@@ -35,7 +36,7 @@ const sendemail = async (data, to) => {
   var mailOptions = {
     from: '"Linguaphile Skills Hub " <nigeldias27@outlook.com>', // sender address (who sends)
     to: to, // list of receivers (who receives)
-    subject: "Hello ", // Subject line
+    subject: "Form Submission ", // Subject line
     text: mydata, // plaintext body
     // html: data, // html body
   };

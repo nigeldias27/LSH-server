@@ -37,11 +37,19 @@ const form_inputs = async (req, res) => {
         });
       }
       
-    }else{await res.json({
-      formName: form.formName,
-      questions: qna,
-      goTorole: gotorole==null?"":gotorole.roleName,
-    });}
+    }else{
+      const alreadySubmitted = await Submission.findOne({user:req.userid});
+      if(alreadySubmitted!=null){
+        await res.send("No form");
+      }
+      else{
+        await res.json({
+          formName: form.formName,
+          questions: qna,
+          goTorole: gotorole==null?"":gotorole.roleName,
+        });
+      }
+      }
     
    
   } catch (error) {
@@ -160,7 +168,7 @@ if(req.body.previousSubmisson.length==0){  const newsubmission = new Submission(
         nextrole.people[Math.floor(Math.random() * nextrole.people.length)];
       const selectedemail = await User.findById(selectedperson);
       await User.findByIdAndUpdate(selectedperson, {
-        previousSubmisson: [...selectedemail.previousSubmisson,newsubmission._id],
+        previousSubmisson: [...selectedemail.previousSubmisson,submission._id],
       });
 
       await sendemail(l, selectedemail.email);
