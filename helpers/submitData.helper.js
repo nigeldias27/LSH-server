@@ -1,5 +1,5 @@
 //Reformat the incoming data to have a format as [{input:"Question",val:"Data"}]
-const submitData = (list) => {
+export const submitData = (list) => {
   var l = [];
   for (let i = 0; i < list.length; i++) {
     const element = list[i];
@@ -23,5 +23,3 @@ const submitData = (list) => {
   }
   return l;
 };
-
-export { submitData };

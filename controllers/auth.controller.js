@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { saltRounds } from "../utils/constants.js";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
-const login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
     const result = await bcrypt.compare(req.body.password, user.password);
@@ -16,11 +16,11 @@ const login = async (req, res) => {
       res.status(400).send("Err");
     }
   } catch (error) {
-    res.status(400).send(error);
+    res.status(400).send(error.message);
   }
 };
 
-const newuser = async (req, res) => {
+export const newUser = async (req, res) => {
   try {
     const role = await Role.findOne({ roleName: req.body.role });
     const salt = await bcrypt.genSalt(saltRounds);
@@ -34,8 +34,6 @@ const newuser = async (req, res) => {
     const dataToSave = await data.save();
     res.status(200).json(dataToSave);
   } catch (error) {
-    res.status(400).send(error);
+    res.status(400).send(error.message);
   }
 };
-
-export { login, newuser };

@@ -1,13 +1,13 @@
 import nodemailer from "nodemailer";
 import "dotenv/config";
-const sendemail = async (data, to) => {
+export const sendEmail = async (data, to) => {
   var mydata = "";
   for (let index = 0; index < data.length; index++) {
     const element = data[index];
     for (let innerindex = 0; innerindex < element.length; innerindex++) {
       const e = element[innerindex];
       mydata = mydata + e.input + "\n";
-      if (typeof(e.val) == "string") {
+      if (typeof e.val == "string") {
         mydata = mydata + e.val + "\n";
       } else {
         for (let myindex = 0; myindex < e.val.length; myindex++) {
@@ -17,7 +17,7 @@ const sendemail = async (data, to) => {
       }
     }
   }
-  mydata = mydata +`\n Link to form: ${process.env.EMAIL_LINK}`
+  mydata = mydata + `\n Link to form: ${process.env.EMAIL_LINK}`;
 
   var transporter = nodemailer.createTransport({
     host: "smtp-mail.outlook.com", // hostname
@@ -44,5 +44,3 @@ const sendemail = async (data, to) => {
   // send mail with defined transport object
   await transporter.sendMail(mailOptions);
 };
-
-export { sendemail };

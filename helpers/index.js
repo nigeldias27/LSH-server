@@ -1,3 +1,3 @@
-import { submitData } from "./submitData.js";
-import { sendemail } from "./sendEmail.js";
-export { submitData, sendemail };
+import { submitData } from "./submitData.helper.js";
+import { sendEmail } from "./sendEmail.helper.js";
+export { submitData, sendEmail };

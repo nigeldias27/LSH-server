@@ -1,3 +1,3 @@
-import { authenticatetoken } from "./auth.jwt.js";
+import { authenticateToken } from "./auth.jwt.middleware.js";
 
-export { authenticatetoken };
+export { authenticateToken };

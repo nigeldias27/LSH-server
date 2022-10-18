@@ -1,6 +1,6 @@
-import { Form, Role } from "../models/index.js";
+import { Role } from "../models/index.js";
 
-const getrole = async (req, res) => {
+export const getRole = async (req, res) => {
   try {
     const docs = await Role.find({});
     res.json(docs);
@@ -9,7 +9,7 @@ const getrole = async (req, res) => {
   }
 };
 
-const newrole = async (req, res) => {
+export const newRole = async (req, res) => {
   //const form = await Form.findOne({ formName: req.body.formName });
   const data = new Role({
     roleName: req.body.roleName,
@@ -28,5 +28,3 @@ const newrole = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-
-export { getrole, newrole };

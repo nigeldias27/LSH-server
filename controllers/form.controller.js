@@ -1,16 +1,16 @@
 import { User, Role, Question, Form, Submission } from "../models/index.js";
-import { sendemail } from "../helpers/index.js";
+import { sendEmail } from "../helpers/index.js";
 import "dotenv/config";
 import { submitData } from "../helpers/index.js";
 
-const form_inputs = async (req, res) => {
+export const formInputs = async (req, res) => {
   try {
     const user = await User.findById(req.userid);
     const role = await Role.findById(user.role);
     const form = await Form.findById(role.form);
     const gotorole =
       form.goTorole == "" ? "" : await Role.findById(form.goTorole);
-      const qna = [];
+    const qna = [];
     for (let i = 0; i < form.questions.length; i++) {
       const element = form.questions[i];
       var qnanext = [];
@@ -22,42 +22,37 @@ const form_inputs = async (req, res) => {
       }
       qna.push(qnanext);
     }
-    
-    if(form.validation==true){
-      console.log(user.previousSubmisson)
-      if(user.previousSubmisson.length==0){
+
+    if (form.validation == true) {
+      console.log(user.previousSubmisson);
+      if (user.previousSubmisson.length == 0) {
         await res.send("No form");
-      }
-      else{
+      } else {
         await res.json({
           formName: form.formName,
           questions: qna,
-          goTorole: gotorole==null?"":gotorole.roleName,
-          previousSubmisson:[user.previousSubmisson[0]]
+          goTorole: gotorole == null ? "" : gotorole.roleName,
+          previousSubmisson: [user.previousSubmisson[0]],
         });
       }
-      
-    }else{
-      const alreadySubmitted = await Submission.findOne({user:req.userid});
-      if(alreadySubmitted!=null){
+    } else {
+      const alreadySubmitted = await Submission.findOne({ user: req.userid });
+      if (alreadySubmitted != null) {
         await res.send("No form");
-      }
-      else{
+      } else {
         await res.json({
           formName: form.formName,
           questions: qna,
-          goTorole: gotorole==null?"":gotorole.roleName,
+          goTorole: gotorole == null ? "" : gotorole.roleName,
         });
       }
-      }
-    
-   
+    }
   } catch (error) {
-    res.status(400).send(error);
+    res.status(400).send(error.message);
   }
 };
 
-const newques = async (req, res) => {
+export const newQues = async (req, res) => {
   const newques = new Question({
     input: req.body.input,
     type: req.body.type,
@@ -68,7 +63,7 @@ const newques = async (req, res) => {
     const datatosave = await newques.save();
     res.status(200).send(datatosave);
   } catch (error) {
-    res.status(400).send(error);
+    res.status(400).send(error.message);
   }
 };
 
@@ -85,7 +80,7 @@ const newques = async (req, res) => {
     "validation":false,
     "questions":[["Name of Father"],["APGAR Score"]]
 } */
-const newform = async (req, res) => {
+export const newForm = async (req, res) => {
   const role =
     req.body.gotorole == ""
       ? ""
@@ -123,44 +118,50 @@ const newform = async (req, res) => {
     await Role.findByIdAndUpdate(roles._id, { form: newform._id });
     res.status(200).send(datatosave);
   } catch (error) {
-    res.status(400).send(error);
+    res.status(400).send(error.message);
   }
 };
 
-const submit = async (req, res) => {
+export const submit = async (req, res) => {
   var l = submitData(req.body.questions);
 
-if(req.body.previousSubmisson.length==0){  const newsubmission = new Submission({
-    user: req.userid,
-    questions: l,
-  });
-  try {
-    const datatosave = await newsubmission.save();
-    console.log(req.body.gotorole);
-    if (req.body.gotorole != "") {
-      const nextrole = await Role.findOne({ roleName: req.body.gotorole });
-      console.log(nextrole.people);
-      const selectedperson =
-        nextrole.people[Math.floor(Math.random() * nextrole.people.length)];
-      const selectedemail = await User.findById(selectedperson);
-      await User.findByIdAndUpdate(selectedperson, {
-        previousSubmisson: [...selectedemail.previousSubmisson,newsubmission._id],
-      });
+  if (req.body.previousSubmisson.length == 0) {
+    const newsubmission = new Submission({
+      user: req.userid,
+      questions: l,
+    });
+    try {
+      const datatosave = await newsubmission.save();
+      console.log(req.body.gotorole);
+      if (req.body.gotorole != "") {
+        const nextrole = await Role.findOne({ roleName: req.body.gotorole });
+        console.log(nextrole.people);
+        const selectedperson =
+          nextrole.people[Math.floor(Math.random() * nextrole.people.length)];
+        const selectedemail = await User.findById(selectedperson);
+        await User.findByIdAndUpdate(selectedperson, {
+          previousSubmisson: [
+            ...selectedemail.previousSubmisson,
+            newsubmission._id,
+          ],
+        });
 
-      await sendemail(l, selectedemail.email);
-      res.status(200).send(datatosave);
+        await sendEmail(l, selectedemail.email);
+        res.status(200).send(datatosave);
+      }
+    } catch (error) {
+      res.status(400).send(error.message);
     }
-  } catch (error) {
-    res.status(400).send(error);
-  }}
-  else{
-    const submission = await Submission.findById(req.body.previousSubmisson[0])
+  } else {
+    const submission = await Submission.findById(req.body.previousSubmisson[0]);
     l = submission.questions.concat(l);
-    await Submission.findByIdAndUpdate(req.body.previousSubmisson[0],{questions:l})
-    const user = await User.findById(req.userid)
-    var x = user.previousSubmisson
-    x.shift()
-    await User.findByIdAndUpdate(req.userid,{previousSubmisson:x})
+    await Submission.findByIdAndUpdate(req.body.previousSubmisson[0], {
+      questions: l,
+    });
+    const user = await User.findById(req.userid);
+    var x = user.previousSubmisson;
+    x.shift();
+    await User.findByIdAndUpdate(req.userid, { previousSubmisson: x });
     if (req.body.gotorole != "") {
       const nextrole = await Role.findOne({ roleName: req.body.gotorole });
       console.log(nextrole.people);
@@ -168,12 +169,11 @@ if(req.body.previousSubmisson.length==0){  const newsubmission = new Submission(
         nextrole.people[Math.floor(Math.random() * nextrole.people.length)];
       const selectedemail = await User.findById(selectedperson);
       await User.findByIdAndUpdate(selectedperson, {
-        previousSubmisson: [...selectedemail.previousSubmisson,submission._id],
+        previousSubmisson: [...selectedemail.previousSubmisson, submission._id],
       });
 
-      await sendemail(l, selectedemail.email);
+      await sendEmail(l, selectedemail.email);
       res.status(200).send(l);
     }
   }
 };
-export { form_inputs, sendemail, newques, newform, submit };

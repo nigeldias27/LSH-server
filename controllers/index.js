@@ -1,20 +1,13 @@
-import { getrole, newrole } from "./roles.controller.js";
-import { login, newuser } from "./auth.controller.js";
-import {
-  form_inputs,
-  sendemail,
-  newques,
-  newform,
-  submit,
-} from "./form.controller.js";
+import { getRole, newRole } from "./roles.controller.js";
+import { login, newUser } from "./auth.controller.js";
+import { formInputs, newQues, newForm, submit } from "./form.controller.js";
 export {
-  getrole,
-  newrole,
+  getRole,
+  newRole,
   login,
-  newuser,
-  form_inputs,
-  sendemail,
-  newques,
-  newform,
+  newUser,
+  formInputs,
+  newQues,
+  newForm,
   submit,
 };

@@ -12,8 +12,8 @@ app.listen(4000, () => {
 });
 readdirSync("./routes").map((r) => app.use("/api", require(`./routes/${r}`)));
 
-const user = process.env.DATABASE_URL;
-mongoose.connect(user);
+const dburl = process.env.DATABASE_URL;
+mongoose.connect(dburl);
 const database = mongoose.connection;
 database.once("connected", () => {
   console.log("Database connected successfully!");
