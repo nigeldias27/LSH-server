@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import "dotenv/config";
-export const sendEmail = async (data, to) => {
+export const sendEmail = async (data, to,formIdLink) => {
   var mydata = "";
   for (let index = 0; index < data.length; index++) {
     const element = data[index];
@@ -17,7 +17,7 @@ export const sendEmail = async (data, to) => {
       }
     }
   }
-  mydata = mydata + `\n Link to form: ${process.env.EMAIL_LINK}`;
+  mydata = mydata + `\n Link to form: ${process.env.EMAIL_LINK}/${formIdLink.toString()}`;
 
   var transporter = nodemailer.createTransport({
     host: "smtp-mail.outlook.com", // hostname

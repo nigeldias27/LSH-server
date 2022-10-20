@@ -3,10 +3,13 @@ import mongoose from "mongoose";
 const dataSchema = new mongoose.Schema(
   {
     questions: [],
-    user: {
-      ref: "User",
-      type: mongoose.Schema.Types.ObjectId,
-    },
+    user: [
+      {
+        ref: "User",
+        type: mongoose.Schema.Types.ObjectId,
+      },
+    ],
+    isPending: { type: Boolean },
   },
   { timestamps: true }
 );

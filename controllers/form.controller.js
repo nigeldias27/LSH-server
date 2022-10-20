@@ -2,6 +2,7 @@ import { User, Role, Question, Form, Submission } from "../models/index.js";
 import { sendEmail } from "../helpers/index.js";
 import "dotenv/config";
 import { submitData } from "../helpers/index.js";
+import { getFormData } from "../helpers/index.js";
 
 export const formInputs = async (req, res) => {
   try {
@@ -24,27 +25,28 @@ export const formInputs = async (req, res) => {
     }
 
     if (form.validation == true) {
-      console.log(user.previousSubmisson);
       if (user.previousSubmisson.length == 0) {
         await res.send("No form");
       } else {
-        await res.json({
+        var data = {
           formName: form.formName,
           questions: qna,
           goTorole: gotorole == null ? "" : gotorole.roleName,
           previousSubmisson: [user.previousSubmisson[0]],
-        });
+        };
+        await res.json(await getFormData(data));
       }
     } else {
       const alreadySubmitted = await Submission.findOne({ user: req.userid });
       if (alreadySubmitted != null) {
         await res.send("No form");
       } else {
-        await res.json({
+        var data = {
           formName: form.formName,
           questions: qna,
           goTorole: gotorole == null ? "" : gotorole.roleName,
-        });
+        };
+        await res.json(await getFormData(data));
       }
     }
   } catch (error) {
@@ -97,7 +99,6 @@ export const newForm = async (req, res) => {
 
     l.push(innerl);
   }
-  console.log(role);
   if (role != "") {
     var newform = new Form({
       formName: req.body.formName,
@@ -127,15 +128,21 @@ export const submit = async (req, res) => {
 
   if (req.body.previousSubmisson.length == 0) {
     const newsubmission = new Submission({
-      user: req.userid,
+      user: [req.userid],
       questions: l,
     });
     try {
+
+      if (req.body.gotorole != "") {
+        newsubmission.isPending=true;
+      }
+      else{  newsubmission.isPending = false;
+      }
       const datatosave = await newsubmission.save();
-      console.log(req.body.gotorole);
+      
       if (req.body.gotorole != "") {
         const nextrole = await Role.findOne({ roleName: req.body.gotorole });
-        console.log(nextrole.people);
+        
         const selectedperson =
           nextrole.people[Math.floor(Math.random() * nextrole.people.length)];
         const selectedemail = await User.findById(selectedperson);
@@ -145,8 +152,8 @@ export const submit = async (req, res) => {
             newsubmission._id,
           ],
         });
-
-        await sendEmail(l, selectedemail.email);
+      const roleForForm = await Role.findById(selectedperson.role);
+        await sendEmail(l, selectedemail.email, roleForForm.form);
         res.status(200).send(datatosave);
       }
     } catch (error) {
@@ -155,24 +162,25 @@ export const submit = async (req, res) => {
   } else {
     const submission = await Submission.findById(req.body.previousSubmisson[0]);
     l = submission.questions.concat(l);
+      const user = await User.findById(req.userid);
     await Submission.findByIdAndUpdate(req.body.previousSubmisson[0], {
-      questions: l,
+      questions: l,user: submission.user.concat(user._id)
     });
-    const user = await User.findById(req.userid);
+
     var x = user.previousSubmisson;
     x.shift();
     await User.findByIdAndUpdate(req.userid, { previousSubmisson: x });
     if (req.body.gotorole != "") {
       const nextrole = await Role.findOne({ roleName: req.body.gotorole });
-      console.log(nextrole.people);
+      
       const selectedperson =
         nextrole.people[Math.floor(Math.random() * nextrole.people.length)];
       const selectedemail = await User.findById(selectedperson);
       await User.findByIdAndUpdate(selectedperson, {
         previousSubmisson: [...selectedemail.previousSubmisson, submission._id],
       });
-
-      await sendEmail(l, selectedemail.email);
+      const roleForForm = await Role.findById(selectedperson.role);
+      await sendEmail(l, selectedemail.email, roleForForm.form);
       res.status(200).send(l);
     }
   }
