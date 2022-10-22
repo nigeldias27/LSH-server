@@ -83,10 +83,13 @@ export const newQues = async (req, res) => {
     "questions":[["Name of Father"],["APGAR Score"]]
 } */
 export const newForm = async (req, res) => {
-  const role =
-    req.body.gotorole == ""
-      ? ""
-      : await Role.findOne({ roleName: req.body.gotorole });
+  const role = [];
+  for (let j = 0; j < req.body.gotorole.length; j++) {
+    const element = req.body.gotorole[j];
+    const foundRole = await Role.findOne({ roleName: element });
+    role.push(foundRole._id);
+  }
+
   var l = [];
   for (let i = 0; i < req.body.questions.length; i++) {
     const element = req.body.questions[i];
@@ -99,20 +102,13 @@ export const newForm = async (req, res) => {
 
     l.push(innerl);
   }
-  if (role != "") {
-    var newform = new Form({
-      formName: req.body.formName,
-      goTorole: role._id,
-      questions: l,
-      validation: req.body.validation,
-    });
-  } else {
-    var newform = new Form({
-      formName: req.body.formName,
-      questions: l,
-      validation: req.body.validation,
-    });
-  }
+  var newform = new Form({
+    formName: req.body.formName,
+    goTorole: role,
+    questions: l,
+    validation: req.body.validation,
+  });
+
   try {
     const datatosave = await newform.save();
     const roles = await Role.findOne({ roleName: req.body.roleName });
@@ -125,51 +121,59 @@ export const newForm = async (req, res) => {
 
 export const submit = async (req, res) => {
   var l = submitData(req.body.questions);
-
-  if (req.body.previousSubmisson.length == 0) {
+  //removing previousSubmission from the body
+  if (Object.keys(req.params).length == 0) {
     const newsubmission = new Submission({
       user: [req.userid],
       questions: l,
     });
     try {
-
-      if (req.body.gotorole != "") {
-        newsubmission.isPending=true;
-      }
-      else{  newsubmission.isPending = false;
-      }
       const datatosave = await newsubmission.save();
-      
-      if (req.body.gotorole != "") {
-        const nextrole = await Role.findOne({ roleName: req.body.gotorole });
-        
-        const selectedperson =
-          nextrole.people[Math.floor(Math.random() * nextrole.people.length)];
-        const selectedemail = await User.findById(selectedperson);
-        await User.findByIdAndUpdate(selectedperson, {
-          previousSubmisson: [
-            ...selectedemail.previousSubmisson,
-            newsubmission._id,
-          ],
-        });
-      const roleForForm = await Role.findById(selectedperson.role);
-        await sendEmail(l, selectedemail.email, roleForForm.form);
-        res.status(200).send(datatosave);
+      if (req.body.goTorole != []) {
+        for (let i = 0; i < req.body.goTorole.length; i++) {
+          const element = req.body.goTorole[i];
+          if (element != "") {
+            const nextrole = await Role.findOne({ roleName: element });
+
+            const selectedperson =
+              nextrole.people[
+                Math.floor(Math.random() * nextrole.people.length)
+              ];
+            const selectedemail = await User.findById(selectedperson);
+            await User.findByIdAndUpdate(selectedperson, {
+              previousSubmisson: [
+                ...selectedemail.previousSubmisson,
+                newsubmission._id,
+              ],
+            });
+            const roleForForm = await Role.findById(selectedperson.role);
+            await sendEmail(l, selectedemail.email, roleForForm.form);
+          }
+        }
       }
+      res.status(200).send(datatosave);
     } catch (error) {
       res.status(400).send(error.message);
     }
   } else {
-    const submission = await Submission.findById(req.body.previousSubmisson[0]);
+    //    const submission = await Submission.findById(req.body.previousSubmisson[0]);
+    const submission = await Submission.findById(req.params.submissionId);
     l = submission.questions.concat(l);
-      const user = await User.findById(req.userid);
-    await Submission.findByIdAndUpdate(req.body.previousSubmisson[0], {
-      questions: l,user: submission.user.concat(user._id)
+    const user = await User.findById(req.userid);
+    await Submission.findByIdAndUpdate(req.params.submissionId, {
+      questions: l,
+      user: submission.user.concat(user._id),
     });
 
     var x = user.previousSubmisson;
-    x.shift();
+    const index = x.indexOf(req.params.submissionId);
+    if (index > -1) {
+      // only splice array when item is found
+      x.splice(index, 1); // 2nd parameter means remove one item only
+    }
     await User.findByIdAndUpdate(req.userid, { previousSubmisson: x });
+    res.status(200).send("Success");
+    /*
     if (req.body.gotorole != "") {
       const nextrole = await Role.findOne({ roleName: req.body.gotorole });
       
@@ -182,6 +186,6 @@ export const submit = async (req, res) => {
       const roleForForm = await Role.findById(selectedperson.role);
       await sendEmail(l, selectedemail.email, roleForForm.form);
       res.status(200).send(l);
-    }
+    }*/
   }
 };

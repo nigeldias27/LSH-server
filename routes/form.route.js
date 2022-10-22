@@ -11,5 +11,5 @@ router.post("/newquestion", newQues);
 
 router.post("/newform", newForm);
 
-router.post("/submission", authenticateToken, submit);
+router.post("/submission/:submissionId", authenticateToken, submit);
 module.exports = router;

@@ -1,6 +1,7 @@
 import { getRole, newRole } from "./roles.controller.js";
 import { login, newUser } from "./auth.controller.js";
 import { formInputs, newQues, newForm, submit } from "./form.controller.js";
+import { pendingForms, completedForms } from "./landing.controller.js";
 export {
   getRole,
   newRole,
@@ -10,4 +11,6 @@ export {
   newQues,
   newForm,
   submit,
+  pendingForms,
+  completedForms,
 };

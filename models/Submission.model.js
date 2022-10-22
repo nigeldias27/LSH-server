@@ -9,7 +9,6 @@ const dataSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
       },
     ],
-    isPending: { type: Boolean },
   },
   { timestamps: true }
 );

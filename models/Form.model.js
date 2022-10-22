@@ -13,10 +13,10 @@ const dataSchema = new mongoose.Schema(
         },
       ],
     ],
-    goTorole: {
+    goTorole: [{
       ref: "Role",
       type: mongoose.Schema.Types.ObjectId,
-    },
+    }],
     validation: { type: Boolean },
   },
   { timestamps: true }
