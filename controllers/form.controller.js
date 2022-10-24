@@ -9,8 +9,12 @@ export const formInputs = async (req, res) => {
     const user = await User.findById(req.userid);
     const role = await Role.findById(user.role);
     const form = await Form.findById(role.form);
-    const gotorole =
-      form.goTorole == "" ? "" : await Role.findById(form.goTorole);
+    const listOfGoToRoles = [];
+    for (let i = 0; i < form.goTorole.length; i++) {
+      const element = form.goTorole[i];
+      const idToRole = await Role.findById(element);
+      listOfGoToRoles.push(idToRole);
+    }
     const qna = [];
     for (let i = 0; i < form.questions.length; i++) {
       const element = form.questions[i];
@@ -31,7 +35,7 @@ export const formInputs = async (req, res) => {
         var data = {
           formName: form.formName,
           questions: qna,
-          goTorole: gotorole == null ? "" : gotorole.roleName,
+          goTorole: listOfGoToRoles,
           previousSubmisson: [user.previousSubmisson[0]],
         };
         await res.json(await getFormData(data));
@@ -44,7 +48,7 @@ export const formInputs = async (req, res) => {
         var data = {
           formName: form.formName,
           questions: qna,
-          goTorole: gotorole == null ? "" : gotorole.roleName,
+          goTorole: listOfGoToRoles,
         };
         await res.json(await getFormData(data));
       }
@@ -122,35 +126,32 @@ export const newForm = async (req, res) => {
 export const submit = async (req, res) => {
   var l = submitData(req.body.questions);
   //removing previousSubmission from the body
-  if (Object.keys(req.params).length == 0) {
+  if (req.params.submissionId == "parent") {
     const newsubmission = new Submission({
       user: [req.userid],
       questions: l,
     });
     try {
       const datatosave = await newsubmission.save();
-      if (req.body.goTorole != []) {
-        for (let i = 0; i < req.body.goTorole.length; i++) {
-          const element = req.body.goTorole[i];
-          if (element != "") {
-            const nextrole = await Role.findOne({ roleName: element });
-
-            const selectedperson =
-              nextrole.people[
-                Math.floor(Math.random() * nextrole.people.length)
-              ];
-            const selectedemail = await User.findById(selectedperson);
-            await User.findByIdAndUpdate(selectedperson, {
-              previousSubmisson: [
-                ...selectedemail.previousSubmisson,
-                newsubmission._id,
-              ],
-            });
-            const roleForForm = await Role.findById(selectedperson.role);
-            await sendEmail(l, selectedemail.email, roleForForm.form);
-          }
-        }
+      for (let i = 0; i < req.body.goTorole.length; i++) {
+        const nextrole = req.body.goTorole[i];
+        console.log(nextrole);
+        const selectedperson =
+          nextrole.people[Math.floor(Math.random() * nextrole.people.length)];
+        console.log(selectedperson);
+        const selectedemail = await User.findById(selectedperson);
+        await User.findByIdAndUpdate(selectedperson, {
+          previousSubmisson: [
+            ...selectedemail.previousSubmisson,
+            newsubmission._id,
+          ],
+        });
+        const roleForForm = await Role.findById(selectedemail.role);
+        console.log(roleForForm);
+        await sendEmail(l, selectedemail.email, roleForForm.form);
+        console.log("Email sent");
       }
+
       res.status(200).send(datatosave);
     } catch (error) {
       res.status(400).send(error.message);
