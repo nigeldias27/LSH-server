@@ -41,17 +41,12 @@ export const formInputs = async (req, res) => {
         await res.json(await getFormData(data));
       }
     } else {
-      const alreadySubmitted = await Submission.findOne({ user: req.userid });
-      if (alreadySubmitted != null) {
-        await res.send("No form");
-      } else {
-        var data = {
-          formName: form.formName,
-          questions: qna,
-          goTorole: listOfGoToRoles,
-        };
-        await res.json(await getFormData(data));
-      }
+      var data = {
+        formName: form.formName,
+        questions: qna,
+        goTorole: listOfGoToRoles,
+      };
+      await res.json(await getFormData(data));
     }
   } catch (error) {
     res.status(400).send(error.message);
