@@ -95,6 +95,7 @@ export const newForm = async (req, res) => {
     var innerl = [];
     for (let nexti = 0; nexti < element.length; nexti++) {
       const nextele = element[nexti];
+      console.log(nextele);
       const q = await Question.findOne({ input: nextele });
       innerl.push(q._id);
     }
