@@ -1,4 +1,4 @@
-import { Role, Submission, User } from "../models/index.js";
+import { Question, Role, Submission, User } from "../models/index.js";
 
 export async function pendingForms(req, res) {
   var l = [];
@@ -24,7 +24,8 @@ export async function completedForms(req, res) {
       for (let j = 0; j < submission.user.length; j++) {
         const user = submission.user[j];
         if (user == req.userid._id && submission.user.length == 4) {
-          l.push(submission);
+          var idAddedObject = await addIdToObject(submission);
+          l.push(idAddedObject);
         }
       }
     }
@@ -34,6 +35,19 @@ export async function completedForms(req, res) {
   }
 }
 
+async function addIdToObject(data) {
+  for (let i = 0; i < data.questions.length; i++) {
+    const element = data.questions[i];
+    for (let j = 0; j < element.length; j++) {
+      const e = element[j];
+      var id = await Question.findOne({ input: e.input });
+      e.id = id._id;
+      e.type = id.type;
+      e.subheadings = id.subheadings;
+    }
+  }
+  return data;
+}
 export async function getUserInfo(req, res) {
   try {
     const userInfo = await User.findById(req.params.userId);
