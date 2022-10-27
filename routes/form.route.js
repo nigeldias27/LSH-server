@@ -5,7 +5,7 @@ import { authenticateToken } from "../middlewares/index.js";
 const router = express.Router();
 //http://localhost:4000/api/newrole
 
-router.get("/getinputs", authenticateToken, formInputs);
+router.get("/getinputs/:submissionId", authenticateToken, formInputs);
 
 router.post("/newquestion", newQues);
 

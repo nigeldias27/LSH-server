@@ -36,7 +36,7 @@ export const formInputs = async (req, res) => {
           formName: form.formName,
           questions: qna,
           goTorole: listOfGoToRoles,
-          previousSubmisson: [user.previousSubmisson[0]],
+          previousSubmisson: [req.params.submissionId],
         };
         await res.json(await getFormData(data));
       }
