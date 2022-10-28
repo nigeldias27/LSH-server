@@ -24,8 +24,7 @@ export async function completedForms(req, res) {
       for (let j = 0; j < submission.user.length; j++) {
         const user = submission.user[j];
         if (user == req.userid._id && submission.user.length == 4) {
-          var idAddedObject = await addIdToObject(submission);
-          l.push(idAddedObject);
+          l.push(submission);
         }
       }
     }
