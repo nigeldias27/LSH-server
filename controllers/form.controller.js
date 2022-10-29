@@ -3,6 +3,7 @@ import { sendEmail } from "../helpers/index.js";
 import "dotenv/config";
 import { submitData } from "../helpers/index.js";
 import { getFormData } from "../helpers/index.js";
+import nodemailer from "nodemailer";
 
 export const formInputs = async (req, res) => {
   try {
@@ -129,6 +130,34 @@ export const submit = async (req, res) => {
     });
     try {
       const datatosave = await newsubmission.save();
+      var transporter = nodemailer.createTransport({
+        host: "smtp-mail.outlook.com", // hostname
+        secureConnection: false, // TLS requires secureConnection to be false
+        port: 587, // port for secure SMTP
+        tls: {
+          ciphers: "SSLv3",
+        },
+        auth: {
+          user: "nigeldias27@outlook.com",
+          pass: `${process.env.EMAIL_PASS}`,
+        },
+      });
+      var mydata = "";
+      for (let index = 0; index < l.length; index++) {
+        const element = l[index];
+        for (let innerindex = 0; innerindex < element.length; innerindex++) {
+          const e = element[innerindex];
+          mydata = mydata + e.input + "\n";
+          if (typeof e.val == "string") {
+            mydata = mydata + e.val + "\n";
+          } else {
+            for (let myindex = 0; myindex < e.val.length; myindex++) {
+              const el = e.val[myindex];
+              mydata = mydata + el + "\n";
+            }
+          }
+        }
+      }
       for (let i = 0; i < req.body.goTorole.length; i++) {
         const nextrole = req.body.goTorole[i];
         console.log(nextrole);
@@ -144,7 +173,12 @@ export const submit = async (req, res) => {
         });
         const roleForForm = await Role.findById(selectedemail.role);
         console.log(roleForForm);
-        await sendEmail(l, selectedemail.email, roleForForm.form);
+        await sendEmail(
+          mydata,
+          selectedemail.email,
+          roleForForm.form,
+          transporter
+        );
         console.log("Email sent");
       }
 
