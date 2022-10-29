@@ -170,9 +170,6 @@ export const submit = async (req, res) => {
           ],
         });
         const roleForForm = await Role.findById(selectedemail.role);
-        console.log(mydata + "mydata");
-        console.log(selectedemail.email + "email");
-        console.log(process.env.EMAIL_PASS);
 
         //       await sendEmail(
         //         mydata,
@@ -180,7 +177,6 @@ export const submit = async (req, res) => {
         //         roleForForm.form,
         //         transporter
         //      );
-        console.log("Email sent");
       }
 
       res.status(200).send(datatosave);
