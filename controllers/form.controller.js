@@ -160,10 +160,8 @@ export const submit = async (req, res) => {
       }
       for (let i = 0; i < req.body.goTorole.length; i++) {
         const nextrole = req.body.goTorole[i];
-        console.log(nextrole);
         const selectedperson =
           nextrole.people[Math.floor(Math.random() * nextrole.people.length)];
-        console.log(selectedperson);
         const selectedemail = await User.findById(selectedperson);
         await User.findByIdAndUpdate(selectedperson, {
           previousSubmisson: [
@@ -172,7 +170,10 @@ export const submit = async (req, res) => {
           ],
         });
         const roleForForm = await Role.findById(selectedemail.role);
-        console.log(roleForForm);
+        console.log(mydata + "mydata");
+        console.log(selectedemail.email + "email");
+        console.log(process.env.EMAIL_PASS);
+
         await sendEmail(
           mydata,
           selectedemail.email,

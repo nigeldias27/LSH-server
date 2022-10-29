@@ -13,7 +13,7 @@ export const sendEmail = async (mydata, to, formIdLink, transporter) => {
     text: mydata, // plaintext body
     // html: data, // html body
   };
-
+  console.log("Before sending email");
   // send mail with defined transport object
   await transporter.sendMail(mailOptions);
 };
