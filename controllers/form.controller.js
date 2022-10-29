@@ -174,12 +174,12 @@ export const submit = async (req, res) => {
         console.log(selectedemail.email + "email");
         console.log(process.env.EMAIL_PASS);
 
-        await sendEmail(
-          mydata,
-          selectedemail.email,
-          roleForForm.form,
-          transporter
-        );
+        //       await sendEmail(
+        //         mydata,
+        //         selectedemail.email,
+        //         roleForForm.form,
+        //         transporter
+        //      );
         console.log("Email sent");
       }
 
