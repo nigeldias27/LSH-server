@@ -21,3 +21,4 @@ database.once("connected", () => {
 database.on("error", (err) => {
   console.log(err);
 });
+module.exports = app;
