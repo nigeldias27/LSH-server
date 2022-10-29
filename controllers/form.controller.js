@@ -170,7 +170,23 @@ export const submit = async (req, res) => {
           ],
         });
         const roleForForm = await Role.findById(selectedemail.role);
+        var finalData =
+          mydata +
+          `\n Link to form: ${
+            process.env.EMAIL_LINK
+          }/${roleForForm.form.toString()}`;
 
+        // setup e-mail data, even with unicode symbols
+        var mailOptions = {
+          from: '"Linguaphile Skills Hub " <nigeldias27@outlook.com>', // sender address (who sends)
+          to: selectedemail.email, // list of receivers (who receives)
+          subject: "Form Submission ", // Subject line
+          text: finalData, // plaintext body
+          // html: data, // html body
+        };
+        console.log("Before sending email");
+        // send mail with defined transport object
+        await transporter.sendMail(mailOptions);
         //       await sendEmail(
         //         mydata,
         //         selectedemail.email,
@@ -181,7 +197,8 @@ export const submit = async (req, res) => {
 
       res.status(200).send(datatosave);
     } catch (error) {
-      res.status(400).send(error.message);
+      console.log(error);
+      res.status(400).send(error);
     }
   } else {
     //    const submission = await Submission.findById(req.body.previousSubmisson[0]);
