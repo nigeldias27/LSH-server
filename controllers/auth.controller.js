@@ -11,7 +11,7 @@ export const login = async (req, res) => {
       const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET_KEY, {
         expiresIn: "1d",
       });
-      const roleForForm = await Role.findById(user.role)
+      const roleForForm = await Role.findById(user.role);
       res.status(200).send({ token: token, formId: roleForForm.form });
     } else {
       res.status(400).send("Err");
